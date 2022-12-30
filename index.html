@@ -1,0 +1,175 @@
+
+
+<!DOCTYPE html>
+<html>
+
+    <style>
+        body {
+            color: black;
+        }
+    </style>
+
+    <body>
+
+        <div id="simulationwindow" style="width: 800px; height: 800px; border: 1px red solid;"></div>
+
+    </body>
+
+    <script>
+
+
+
+        class Universe {
+            _2dgrid = []
+            empty = "0"
+            cell = "1"
+            sidelength = 40;
+            neighbors = 0;
+            settings = {
+                0: {
+                    // killcellwhenneighbors: [0,1,],
+                    // reproducecellwhenneighbors: [],
+                    0: this.empty,
+                    1: this.empty,
+                    2: this.cell,
+                    3: this.cell,
+                    4: this.empty,
+                    5: this.empty,
+                    6: this.empty,
+                    7: this.cell,
+                    8: this.cell,
+                },
+                1: {
+                    0: this.empty,
+                    1: this.empty,
+                    2: this.cell,
+                    3: this.cell,
+                    4: this.empty,
+                    5: this.cell,
+                    6: this.empty,
+                    7: this.empty,
+                    8: this.empty,
+                },
+                2: {
+                    0: this.empty,
+                    1: this.empty,
+                    2: this.cell,
+                    3: this.cell,
+                    4: this.empty,
+                    5: this.empty,
+                    6: this.cell,
+                    7: this.empty,
+                    8: this.empty,
+                }
+            }
+            set(x,y){}
+            build(sidelength){
+                this.sidelength = sidelength
+                this._2dgrid = [];
+                for (var i=0;i<sidelength;i++){
+                    let row = [];
+                    for (var j=0; j<sidelength;j++){
+                        row[j] = [this.empty, this.cell][Math.round(Math.random())]
+                    }
+                    this._2dgrid.push(row)
+                }
+                return this;
+            }
+            law(){
+
+                for (var i=0; i<this.sidelength; i++) {
+                    for (var j=0; j<this.sidelength; j++){
+                        let neighbospacing = 1;
+                        this.neighbors = 0;
+                        let isCell = this._2dgrid[i][j] === "1"
+                        if (isCell) {
+                            countneighbours:
+                            for (let k = i - neighbospacing; k <= i + neighbospacing; k++) {   
+                                for (let l = j - 1; l <= j + 1; l++) {
+                                    if (
+                                        k > -1 
+                                        && 
+                                        k < this.sidelength
+                                        &&
+                                        l < this.sidelength
+                                        && 
+                                        l > -1
+                                    ) {
+
+                                        let isNeighborCell = this._2dgrid[k][l] === "1";
+                                        if (isNeighborCell) {
+                                            this.neighbors += 1;
+                                        }
+                                    }
+                                }
+                            }
+
+                            this.neighbors -= 1 // remove self cell from count
+
+                            this.setting = this.settings[1];
+
+                            if (this.setting[this.neighbors] === "1") {
+                                this.reproducecell(i, j);
+                            } else {
+                                this.killcell(i, j);
+                            }
+                        }
+                    }
+                }
+            }
+            render(){
+                let html = ``;
+                for (var i=0;i<this.sidelength;i++){
+                    for (var j=0; j<this.sidelength;j++){
+                        // console.log(this._2dgrid[i][j])
+
+                        let backgroundcolor = "";
+                        if (this._2dgrid[i][j] === "0") {
+                            backgroundcolor = "white";
+                        } else {
+                            backgroundcolor = "black";
+                        }
+
+
+                        html += `<div style="position: absolute; background: ${backgroundcolor}; top: ${i*10}px; left: ${j*10}px; width: 10px; height:10px;"></div>`;
+                    }
+                }
+                // console.log(html);
+                document.getElementById("simulationwindow").innerHTML = html;
+                return this
+            }
+            live(){
+                this.law();
+                this.render();
+            }
+            killcell(i, j){
+                this._2dgrid[i][j] = this.setting[this.neighbors];
+            }
+            reproducecell(i, j){
+                let x = i + [-1,1][Math.round(Math.random())];
+                let y = j + [-1,1][Math.round(Math.random())];
+
+                if (x < 0) x = 0;
+                if (y < 0) y = 0;
+                if (x > this.sidelength) x = this.sidelength - 1;
+                if (y > this.sidelength) y = this.sidelength - 1;
+
+                this._2dgrid[x][y] = this.setting[this.neighbors];
+            }
+        }
+        
+        
+        
+        const universe = new Universe()
+        universe.build(60);
+        universe.render();
+        setTimeout(()=>{
+            setInterval(()=>{
+                console.log("interval");
+                universe.live(60);
+            },1000/20)
+        },3000)
+
+
+    </script>
+</html>
